@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 
-get_mvnd_versions() {
-    # Fetch all mvnd releases from GitHub API and extract tag names
-    curl -s "https://api.github.com/repos/apache/mvnd/releases" \
-        | grep -E '"tag_name":' \
-        | sed -E 's/.*"([^"]+)".*/\1/'
+# This script lists all available versions for mvnd.
+# It uses the official GitHub API and jq for safe and reliable parsing.
+
+# Exit immediately if a command exits with a non-zero status.
+# Treat unset variables as an error.
+# The return value of a pipeline is the status of the last command to exit non-zero.
+set -euo pipefail
+
+list_all_mvnd_versions() {
+    # 1. Fetch all releases from the mvnd repository via GitHub's API.
+    # 2. Use jq to parse the JSON and extract the 'tag_name' for each release.
+    # 3. The -r flag provides raw string output without quotes.
+    curl -s "https://api.github.com/repos/apache/maven-mvnd/releases" \
+        | jq -r '.[].tag_name'
 }
 
-get_mvnd_versions | sort --version-sort --unique | tr "\n" " "
+# Execute the function and sort the output using version-aware sorting.
+list_all_mvnd_versions | sort --version-sort

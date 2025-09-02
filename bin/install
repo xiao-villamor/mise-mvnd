@@ -1,56 +1,58 @@
 #!/usr/bin/env bash
 
-# global for error reporting
-ASDF_MVND_ERROR=""
+# This script downloads and installs a specific version of mvnd.
+# It's designed for the 'mise' version manager and handles .tar.gz archives.
 
-# Download mvnd release from GitHub, extract, copy files and cleanup.
-install_mvnd() {
-    local version=$1
-    local destdir=$2
 
-    get_mvnd $version "$destdir"
-    [[ -z $ASDF_MVND_ERROR ]] || return
+# Determine the operating system and architecture to build the correct download URL.
+get_platform_arch() {
+    local os
+    local arch
 
-    extract_copy_cleanup $version "$destdir"
+    case "$(uname -s)" in
+        Linux*)     os=linux;;
+        Darwin*)    os=darwin;;
+        *)          echo "Unsupported OS: $(uname -s)" >&2; exit 1;;
+    esac
+
+    case "$(uname -m)" in
+        x86_64)     arch=amd64;;
+        aarch64)    arch=aarch64;;
+        arm64)      arch=aarch64;; # For macOS ARM
+        *)          echo "Unsupported architecture: $(uname -m)" >&2; exit 1;;
+    esac
+
+    echo "${os}-${arch}"
 }
 
-# Download mvnd release from GitHub
-get_mvnd() {
-    local version=$1
-    local destdir=$2
+# The main function to download and install mvnd
+main() {
+    local version="${MISE_TOOL_VERSION}"
+    local install_path="${MISE_INSTALL_PATH}"
 
-    local url="https://github.com/apache/mvnd/releases/download/$version/mvnd-$version-linux-amd64.zip"
+    local platform_arch
+    platform_arch=$(get_platform_arch)
 
-    curl -fLC - --retry 3 --retry-delay 3 -o "$destdir/$version.zip" "$url"
-    if [ ! $? -eq 0 ]; then
-        ASDF_MVND_ERROR="Could not download $url. Perhaps the version of mvnd you're trying to install does not exist"
-    fi
+    local download_file="maven-mvnd-${version}-${platform_arch}.tar.gz"
+    local url="https://github.com/apache/maven-mvnd/releases/download/${version}/${download_file}"
+
+    echo "Downloading mvnd ${version} for ${platform_arch} from ${url}"
+
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    
+    curl --fail --location --progress-bar --retry 3 --retry-delay 3 \
+        -o "${tmp_dir}/${download_file}" "${url}"
+
+    tar -xzf "${tmp_dir}/${download_file}" -C "${install_path}"
+    
+    local extracted_dir="${install_path}/maven-mvnd-${version}-${platform_arch}"
+    mv "${extracted_dir}"/* "${install_path}/"
+    rmdir "${extracted_dir}"
+
+    rm -rf "${tmp_dir}"
+    
+    echo "mvnd ${version} installed successfully in ${install_path}"
 }
 
-# Extract mvnd, copy files and cleanup.
-extract_copy_cleanup() {
-    local version=$1
-    local destdir=$2
-
-    local origin=$(pwd)
-    cd "$destdir"
-    {
-        unzip $version.zip
-        rm $version.zip
-
-        mv mvnd-$version/* .
-        rmdir mvnd-$version
-    }
-    cd "$origin"
-}
-
-#
-# MAIN
-#
-install_mvnd $ASDF_INSTALL_VERSION "$ASDF_INSTALL_PATH"
-
-if [ -n "$ASDF_MVND_ERROR" ]; then
-    echo "ERROR: $ASDF_MVND_ERROR." >/dev/stderr
-    unset ASDF_MVND_ERROR
-    exit 1
-fi
+main

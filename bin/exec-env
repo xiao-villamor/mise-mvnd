@@ -6,3 +6,4 @@ export PATH="$MVND_HOME/bin:$PATH"
 else
     export MAVEN_HOME="$ASDF_INSTALL_PATH"
 fi
+
