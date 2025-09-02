@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
 
-# Set environment variables for mvnd
-export MVND_HOME="$ASDF_INSTALL_PATH"
-export PATH="$MVND_HOME/bin:$PATH"
-else
-    export MAVEN_HOME="$ASDF_INSTALL_PATH"
-fi
-
+export MVND_HOME="${MISE_TOOL_PATH}"
+export PATH="${MVND_HOME}/bin:${PATH}"

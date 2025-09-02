@@ -3,6 +3,7 @@
 # This script downloads and installs a specific version of mvnd.
 # It's designed for the 'mise' version manager and handles .tar.gz archives.
 
+set -euo pipefail
 
 # Determine the operating system and architecture to build the correct download URL.
 get_platform_arch() {
@@ -44,11 +45,12 @@ main() {
     curl --fail --location --progress-bar --retry 3 --retry-delay 3 \
         -o "${tmp_dir}/${download_file}" "${url}"
 
-    tar -xzf "${tmp_dir}/${download_file}" -C "${install_path}"
+    # --- CHANGE ---
+    # Extract the archive directly into the installation path,
+    # stripping the top-level directory (e.g., 'maven-mvnd-1.0.2-linux-amd64').
+    tar -xzf "${tmp_dir}/${download_file}" -C "${install_path}" --strip-components=1
     
-    local extracted_dir="${install_path}/maven-mvnd-${version}-${platform_arch}"
-    mv "${extracted_dir}"/* "${install_path}/"
-    rmdir "${extracted_dir}"
+    # The 'mv' and 'rmdir' commands are no longer needed.
 
     rm -rf "${tmp_dir}"
     
