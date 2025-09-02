@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# global for error reporting
+ASDF_MVND_ERROR=""
+
+# Download mvnd release from GitHub, extract, copy files and cleanup.
+install_mvnd() {
+    local version=$1
+    local destdir=$2
+
+    get_mvnd $version "$destdir"
+    [[ -z $ASDF_MVND_ERROR ]] || return
+
+    extract_copy_cleanup $version "$destdir"
+}
+
+# Download mvnd release from GitHub
+get_mvnd() {
+    local version=$1
+    local destdir=$2
+
+    local url="https://github.com/apache/mvnd/releases/download/$version/mvnd-$version-linux-amd64.zip"
+
+    curl -fLC - --retry 3 --retry-delay 3 -o "$destdir/$version.zip" "$url"
+    if [ ! $? -eq 0 ]; then
+        ASDF_MVND_ERROR="Could not download $url. Perhaps the version of mvnd you're trying to install does not exist"
+    fi
+}
+
+# Extract mvnd, copy files and cleanup.
+extract_copy_cleanup() {
+    local version=$1
+    local destdir=$2
+
+    local origin=$(pwd)
+    cd "$destdir"
+    {
+        unzip $version.zip
+        rm $version.zip
+
+        mv mvnd-$version/* .
+        rmdir mvnd-$version
+    }
+    cd "$origin"
+}
+
+#
+# MAIN
+#
+install_mvnd $ASDF_INSTALL_VERSION "$ASDF_INSTALL_PATH"
+
+if [ -n "$ASDF_MVND_ERROR" ]; then
+    echo "ERROR: $ASDF_MVND_ERROR." >/dev/stderr
+    unset ASDF_MVND_ERROR
+    exit 1
+fi

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+get_mvnd_versions() {
+    # Fetch all mvnd releases from GitHub API and extract tag names
+    curl -s "https://api.github.com/repos/apache/mvnd/releases" \
+        | grep -E '"tag_name":' \
+        | sed -E 's/.*"([^"]+)".*/\1/'
+}
+
+get_mvnd_versions | sort --version-sort --unique | tr "\n" " "
