@@ -5,8 +5,9 @@
 set -euo pipefail
 
 # asdf passes the version as the first argument and the target download path as the second.
-local version="$1"
-local download_path="$2"
+version="$ASDF_INSTALL_VERSION"
+download_path="$ASDF_DOWNLOAD_PATH"
+
 
 # Determine the operating system and architecture to build the correct download URL.
 get_platform_arch() {

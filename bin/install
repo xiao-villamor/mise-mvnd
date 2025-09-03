@@ -8,8 +8,9 @@ set -euo pipefail
 # asdf provides these environment variables:
 # ASDF_INSTALL_PATH: The final installation directory.
 # The first argument ($1) is the path to the downloaded file.
-local install_path="${ASDF_INSTALL_PATH}"
-local download_path="$1"
+install_path="$ASDF_INSTALL_PATH"
+download_path="$ASDF_DOWNLOAD_PATH"
+
 
 echo "Installing mvnd from ${download_path} into ${install_path}"
 
