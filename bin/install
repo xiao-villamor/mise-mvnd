@@ -14,10 +14,9 @@ download_path="$ASDF_DOWNLOAD_PATH"
 
 echo "Installing mvnd from ${download_path} into ${install_path}"
 
-# Create the installation directory.
-mkdir -p "${install_path}"
+cd "$download_path" 
 
 # Extract the archive, stripping the top-level directory from the tarball.
-tar -xzf "${download_path}" -C "${install_path}" --strip-components=1
+tar -xzf tmp.tar.gz --strip-components=1
 
 echo "mvnd ${ASDF_INSTALL_VERSION} installed successfully."

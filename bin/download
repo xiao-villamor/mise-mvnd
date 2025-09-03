@@ -38,5 +38,4 @@ url="https://github.com/apache/maven-mvnd/releases/download/${version}/${downloa
 echo "Downloading mvnd ${version} for ${platform_arch} from ${url}"
 
 # Use curl to download the file directly to the path provided by asdf.
-curl --fail --location --progress-bar --retry 3 --retry-delay 3 \
-    -o "${download_path}" "${url}"
+curl --fail -L -o "${download_path}/tmp.tar.gz" "${url}"
