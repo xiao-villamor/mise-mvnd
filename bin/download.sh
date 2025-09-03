@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# This script downloads a specific version of mvnd for asdf.
+
+set -euo pipefail
+
+# asdf passes the version as the first argument and the target download path as the second.
+local version="$1"
+local download_path="$2"
+
+# Determine the operating system and architecture to build the correct download URL.
+get_platform_arch() {
+    local os
+    local arch
+
+    case "$(uname -s)" in
+        Linux*)   os=linux;;
+        Darwin*)  os=darwin;;
+        *)        echo "Unsupported OS: $(uname -s)" >&2; exit 1;;
+    esac
+
+    case "$(uname -m)" in
+        x86_64)   arch=amd64;;
+        aarch64)  arch=aarch64;;
+        arm64)    arch=aarch64;; # For macOS ARM
+        *)        echo "Unsupported architecture: $(uname -m)" >&2; exit 1;;
+    esac
+
+    echo "${os}-${arch}"
+}
+
+local platform_arch
+platform_arch=$(get_platform_arch)
+
+local download_file="maven-mvnd-${version}-${platform_arch}.tar.gz"
+local url="https://github.com/apache/maven-mvnd/releases/download/${version}/${download_file}"
+
+echo "Downloading mvnd ${version} for ${platform_arch} from ${url}"
+
+# Use curl to download the file directly to the path provided by asdf.
+curl --fail --location --progress-bar --retry 3 --retry-delay 3 \
+    -o "${download_path}" "${url}"

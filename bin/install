@@ -1,60 +1,22 @@
 #!/usr/bin/env bash
 
-# This script downloads and installs a specific version of mvnd.
-# It's designed for the 'mise' version manager and handles .tar.gz archives.
+# This script installs a specific version of mvnd for asdf.
+# It assumes the tarball has already been downloaded by the 'download' script.
 
 set -euo pipefail
 
-# Determine the operating system and architecture to build the correct download URL.
-get_platform_arch() {
-    local os
-    local arch
+# asdf provides these environment variables:
+# ASDF_INSTALL_PATH: The final installation directory.
+# The first argument ($1) is the path to the downloaded file.
+local install_path="${ASDF_INSTALL_PATH}"
+local download_path="$1"
 
-    case "$(uname -s)" in
-        Linux*)     os=linux;;
-        Darwin*)    os=darwin;;
-        *)          echo "Unsupported OS: $(uname -s)" >&2; exit 1;;
-    esac
+echo "Installing mvnd from ${download_path} into ${install_path}"
 
-    case "$(uname -m)" in
-        x86_64)     arch=amd64;;
-        aarch64)    arch=aarch64;;
-        arm64)      arch=aarch64;; # For macOS ARM
-        *)          echo "Unsupported architecture: $(uname -m)" >&2; exit 1;;
-    esac
+# Create the installation directory.
+mkdir -p "${install_path}"
 
-    echo "${os}-${arch}"
-}
+# Extract the archive, stripping the top-level directory from the tarball.
+tar -xzf "${download_path}" -C "${install_path}" --strip-components=1
 
-# The main function to download and install mvnd
-main() {
-    local version="${MISE_TOOL_VERSION}"
-    local install_path="${MISE_INSTALL_PATH}"
-
-    local platform_arch
-    platform_arch=$(get_platform_arch)
-
-    local download_file="maven-mvnd-${version}-${platform_arch}.tar.gz"
-    local url="https://github.com/apache/maven-mvnd/releases/download/${version}/${download_file}"
-
-    echo "Downloading mvnd ${version} for ${platform_arch} from ${url}"
-
-    local tmp_dir
-    tmp_dir=$(mktemp -d)
-    
-    curl --fail --location --progress-bar --retry 3 --retry-delay 3 \
-        -o "${tmp_dir}/${download_file}" "${url}"
-
-    # --- CHANGE ---
-    # Extract the archive directly into the installation path,
-    # stripping the top-level directory (e.g., 'maven-mvnd-1.0.2-linux-amd64').
-    tar -xzf "${tmp_dir}/${download_file}" -C "${install_path}" --strip-components=1
-    
-    # The 'mv' and 'rmdir' commands are no longer needed.
-
-    rm -rf "${tmp_dir}"
-    
-    echo "mvnd ${version} installed successfully in ${install_path}"
-}
-
-main
+echo "mvnd ${ASDF_INSTALL_VERSION} installed successfully."
