@@ -30,11 +30,10 @@ get_platform_arch() {
     echo "${os}-${arch}"
 }
 
-local platform_arch
 platform_arch=$(get_platform_arch)
 
-local download_file="maven-mvnd-${version}-${platform_arch}.tar.gz"
-local url="https://github.com/apache/maven-mvnd/releases/download/${version}/${download_file}"
+download_file="maven-mvnd-${version}-${platform_arch}.tar.gz"
+url="https://github.com/apache/maven-mvnd/releases/download/${version}/${download_file}"
 
 echo "Downloading mvnd ${version} for ${platform_arch} from ${url}"
 
